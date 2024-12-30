@@ -1,109 +1,104 @@
 import random
 
+COUNTER = 0
 
-COUNTER = 0 
-    
+def is_available(grid, val, row, col):
+    """Check if a value can be placed in the grid at the given row and column."""
+    block_row, block_col = (row // 3) * 3, (col // 3) * 3
 
-def available_pos(grid, val, row, col):
-    block_i = (row // 3) * 3
-    block_j = (col // 3) * 3
-        
-    for b_i in range(block_i, block_i + 3):
-        for b_j in range(block_j, block_j + 3):
-            if grid[b_i][b_j] == val:
+    # Check the 3x3 block
+    for i in range(3):
+        for j in range(3):
+            if grid[block_row + i][block_col + j] == val:
                 return False
-                
-    for j in range(9):
-        if grid[row][j] == val:
-            return False
-            
-    for i in range(9):
-        if grid[i][col] == val:
-            return False
-            
+
+    # Check the row and column
+    if val in grid[row] or val in [grid[i][col] for i in range(9)]:
+        return False
+
     return True
-        
-    
-def start_element(grid):
+
+
+def find_empty_cell(grid):
+    """Find the first empty cell in the grid. Returns (-1, -1) if the grid is full."""
     for i in range(9):
         for j in range(9):
             if grid[i][j] == 0:
-                return i,j
-        
-    return -1,-1
-    
+                return i, j
+    return -1, -1
 
-def solve(grid) :
+
+def solve(grid):
+    """Solve the Sudoku puzzle using backtracking."""
     global COUNTER
-    i, j = start_element(grid)
-        
-    if i == -1 and j == -1:
-        counter = COUNTER
-        COUNTER = 0
-        return True, counter    
-    
-    for num in range(1, 10):
-        if available_pos(grid,num, i, j):
-            grid[i][j] = num
+    row, col = find_empty_cell(grid)
 
-            if data := solve(grid):
-                return grid, data[1]
-                
-            grid[i][j] = 0
-        else : 
+    if row == -1:  # No empty cell left
+        counter = COUNTER
+        COUNTER = 0  # Reset the counter for the next solve call
+        return True, counter
+
+    for num in range(1, 10):
+        if is_available(grid, num, row, col):
+            grid[row][col] = num
+
+            if solution := solve(grid):
+                return grid, solution[1]
+
+            grid[row][col] = 0  # Backtrack
+        else:
             COUNTER += 1
+
     return False
-        
-        
-def print_grid(grid):   
+
+
+def print_grid(grid):
+    """Print the Sudoku grid in a readable format."""
     for row in grid:
         print(row)
-  
-  
+
+
 def generate_sudoku():
+    """Generate a random Sudoku puzzle."""
     board = [[0 for _ in range(9)] for _ in range(9)]
 
-    # Fill in the diagonal boxes with random numbers
-    for i in range(0, 9, 3):
-        nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    # Fill diagonal blocks with random numbers
+    for block_start in range(0, 9, 3):
+        nums = list(range(1, 10))
         random.shuffle(nums)
-        for j in range(3):
-            board[i+j][i+j] = nums[j]
+        for i in range(3):
+            for j in range(3):
+                board[block_start + i][block_start + j] = nums.pop()
 
-    # Solve the puzzle to create a valid Sudoku solution
+    # Solve the board to generate a valid Sudoku solution
     solve(board)
 
-    # Remove a certain number of cells to create a puzzle
+    # Remove cells to create the puzzle
     num_cells_to_remove = random.randint(40, 50)
-    cells_removed = 0
-    while cells_removed < num_cells_to_remove:
-        row = random.randint(0, 8)
-        col = random.randint(0, 8)
+    while num_cells_to_remove > 0:
+        row, col = random.randint(0, 8), random.randint(0, 8)
         if board[row][col] != 0:
             board[row][col] = 0
-            cells_removed += 1
+            num_cells_to_remove -= 1
 
     return board
-        
+
+
 def has_duplicates(grid):
-    # Check for duplicates in rows
-    for row in grid:
-        if has_duplicates_in_list(row):
+    """Check if the grid has any duplicates in rows, columns, or blocks."""
+    # Check rows and columns
+    for i in range(9):
+        if has_duplicates_in_list(grid[i]) or has_duplicates_in_list([grid[j][i] for j in range(9)]):
             return True
 
-    # Check for duplicates in columns
-    for col in range(9):
-        column = [grid[row][col] for row in range(9)]
-        if has_duplicates_in_list(column):
-            return True
-
-    # Check for duplicates in blocks
-    for block_i in range(0, 9, 3):
-        for block_j in range(0, 9, 3):
-            block = []
-            for i in range(3):
-                for j in range(3):
-                    block.append(grid[block_i + i][block_j + j])
+    # Check 3x3 blocks
+    for block_row in range(0, 9, 3):
+        for block_col in range(0, 9, 3):
+            block = [
+                grid[block_row + i][block_col + j]
+                for i in range(3)
+                for j in range(3)
+            ]
             if has_duplicates_in_list(block):
                 return True
 
@@ -111,56 +106,31 @@ def has_duplicates(grid):
 
 
 def has_duplicates_in_list(lst):
-    counts = [0] * 10
+    """Check if a list contains duplicates, ignoring zeros."""
+    seen = set()
     for num in lst:
-        if num != 0 and counts[num] == 1:
+        if num != 0 and num in seen:
             return True
-        counts[num] += 1
-    return False        
-  
-    
-def main():
-    pass
-    # grid1=[
-    # [1,1,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,0,0],
-    # [0,0,0,0,1,0,0,0,0],
-    # [0,0,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,0,0],
-    # [0,0,0,0,0,0,0,0,0]
-    # ]
-    # grid2 = [
-    #     [1, 0, 3, 4, 0, 6, 7, 8, 9],
-    #     [4, 5, 6, 7, 8, 9, 1, 2, 3],
-    #     [7, 8, 9, 1, 2, 3, 4, 5, 6],
-    #     [2, 1, 4, 3, 6, 5, 8, 9, 7],
-    #     [3, 6, 7, 9, 1, 8, 2, 4, 5],
-    #     [5, 9, 8, 2, 4, 7, 3, 6, 1],
-    #     [6, 3, 1, 8, 9, 2, 5, 7, 4],
-    #     [8, 4, 5, 6, 7, 1, 9, 3, 2],
-    #     [9, 7, 2, 5, 3, 4, 6, 1, 8]]
-    # generated_grid = Generate_Table()
-    # generated_grid.Generate()
-    
+        seen.add(num)
+    return False
 
-    
-    
+
+# Main function to test the implementation
+def main():
+    # Generate a random Sudoku puzzle
+    puzzle = generate_sudoku()
+    print("Generated Sudoku Puzzle:")
+    print_grid(puzzle)
+
+    # Solve the puzzle
+    solved, comparisons = solve(puzzle)
+    if solved:
+        print("\nSolved Sudoku:")
+        print_grid(puzzle)
+        print(f"\nNumber of comparisons: {comparisons}")
+    else:
+        print("\nNo solution exists for the given Sudoku.")
+
 
 if __name__ == '__main__':
     main()
-
-
-'''
-[1, 2, 3, 4, 5, 6, 7, 8, 9],
-[4, 5, 6, 7, 8, 9, 1, 2, 3],
-[7, 8, 9, 1, 2, 3, 4, 5, 6],
-[2, 1, 4, 3, 6, 5, 8, 9, 7],
-[3, 6, 7, 9, 1, 8, 2, 4, 5],
-[5, 9, 8, 2, 4, 7, 3, 6, 1],
-[6, 3, 1, 8, 9, 2, 5, 7, 4],
-[8, 4, 5, 6, 7, 1, 9, 3, 2],
-[9, 7, 2, 5, 3, 4, 6, 1, 8]
-'''
