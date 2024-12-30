@@ -12,7 +12,8 @@ A simple GUI application for generating, solving, and interacting with Sudoku pu
 
 1. **Run the Application**:
    ```bash
-   python main.py```
+   python main.py
+   ```
 2. **Generate a Puzzle**:
       Click the Random button to generate a new Sudoku puzzle.
       Pre-filled cells will be disabled for editing.
