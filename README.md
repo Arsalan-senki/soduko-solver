@@ -23,7 +23,7 @@ A simple GUI application for generating, solving, and interacting with Sudoku pu
 4. **Clear the Grid**:
       Click the Clear button to reset the grid, enabling all cells for editing.
 
-##Requirements
+## Requirements
 
 - Python 3.x
 - Tkinter (comes pre-installed with Python)
